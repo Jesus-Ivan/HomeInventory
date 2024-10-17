@@ -5,11 +5,18 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
+import android.widget.SearchView
+import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.sishome.homeinventory.products.Product
+import com.sishome.homeinventory.data.RetrofitService
+import com.sishome.homeinventory.data.RetrofitServiceFactory
+import com.sishome.homeinventory.data.model.ProductosItem
 import com.sishome.homeinventory.products.ProductsAdapter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -27,18 +34,13 @@ class ProductsFragment : Fragment() {
     private var param2: String? = null
 
     //Variables del fragment
-    private lateinit var rvProducts :RecyclerView
+    private lateinit var rvProducts: RecyclerView
     private lateinit var productsAdapter: ProductsAdapter
-    private lateinit var etInputSearch : EditText
+    private lateinit var svInputSearch: SearchView
 
     private val products = mutableListOf(
-        Product(1,"AGUA","",0f,0.5f),
-        Product(2,"AGUA CIEL","",0f,5f),
-        Product(3,"AGUA MINERAL","",0f,9.5f),
-        Product(4,"AGUA PEÑAFIEL","",0f,8.5f),
-        Product(5,"AGUA MAGICA","",0f,5.9f),
-        Product(6,"CHEETOS","",0f,25f),
-        Product(7,"SABRITAS","",0f,15f),
+        ProductosItem("A0", 0, "", "AAA", "", "", "XD"),
+        ProductosItem("A1", 1, "", "BBB", "", "", "Leche")
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,9 +63,36 @@ class ProductsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         //Creamos los componentes
         initComponents(view);
-        initListeners()
+        initListeners(view);
+
     }
-    
+
+    private fun initListeners(view: View) {
+        svInputSearch.setOnQueryTextListener(object :SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+                val service = RetrofitServiceFactory.makeRetrofitService()
+                lifecycleScope.launch {
+                    val products_result = service.obtenerProductos(p0.toString())
+
+                    println(products_result)
+                    withContext(Dispatchers.Main) {
+                        // Actualizar la lista de usuarios
+                        products.clear()
+                        products.addAll(products_result)
+
+                        // Notificar al adaptador
+                        productsAdapter.notifyDataSetChanged()
+                    }
+                }
+                return false
+            }
+
+            override fun onQueryTextChange(p0: String?): Boolean {
+                return false
+            }
+        })
+    }
+
     private fun initComponents(view: View) {
         /**
          * Recycler view
@@ -78,13 +107,30 @@ class ProductsFragment : Fragment() {
         rvProducts.adapter = productsAdapter;
 
         /**
-         * Campo de busqueda 
+         * Campo de busqueda
          */
-        etInputSearch = view.findViewById(R.id.etInputSearch)
+        svInputSearch = view.findViewById(R.id.svInputSearch)
     }
-    private fun initListeners() {
 
+    /*
+    private fun searchUsers(input:String) {
+        val service = RetrofitServiceFactory.makeRetrofitService()
+        lifecycleScope.launch {
+            val products_result = service.obtenerProductos(input)
+
+            println(products_result)
+            withContext(Dispatchers.Main) {
+                // Actualizar la lista de usuarios
+                products.clear()
+                products.addAll(products_result)
+
+                // Notificar al adaptador
+                productsAdapter.notifyDataSetChanged()
+            }
+            //println(products)
+        }
     }
+    */
 
     companion object {
         /**
