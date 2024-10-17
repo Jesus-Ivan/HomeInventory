@@ -4,6 +4,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.sishome.homeinventory.R
+import com.sishome.homeinventory.data.model.ProductosItem
 
 class ProductsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     /**
@@ -14,9 +15,9 @@ class ProductsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     private val tvObservaciones:TextView = view.findViewById(R.id.tvObservaciones)
 
     //Funcion de renderizado
-    fun render(product: Product) {
+    fun render(product: ProductosItem) {
         tvNombre.text = product.producto
-        tvPrecio.text = product.precio_venta.toString()
+        tvPrecio.text = product.precio_venta
         tvObservaciones.text = product.observaciones
     }
 }
