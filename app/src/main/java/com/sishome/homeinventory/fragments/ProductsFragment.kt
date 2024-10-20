@@ -1,22 +1,26 @@
-package com.sishome.homeinventory
+package com.sishome.homeinventory.fragments
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SearchView
-import android.widget.Toast
-import androidx.lifecycle.lifecycleScope
+import android.widget.ProgressBar
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.sishome.homeinventory.R
 import com.sishome.homeinventory.data.RetrofitService
 import com.sishome.homeinventory.data.RetrofitServiceFactory
 import com.sishome.homeinventory.data.model.ProductosItem
-import com.sishome.homeinventory.products.ProductsAdapter
+import com.sishome.homeinventory.data.model.ProductosResponse
+import com.sishome.homeinventory.adapters.ProductsAdapter
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import retrofit2.Response
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -37,11 +41,11 @@ class ProductsFragment : Fragment() {
     private lateinit var rvProducts: RecyclerView
     private lateinit var productsAdapter: ProductsAdapter
     private lateinit var svInputSearch: SearchView
+    private lateinit var pbProductos :ProgressBar
 
-    private val products = mutableListOf(
-        ProductosItem("A0", 0, "", "AAA", "", "", "XD"),
-        ProductosItem("A1", 1, "", "BBB", "", "", "Leche")
-    )
+    private lateinit var retrofitService: RetrofitService
+
+    private val products: MutableList<ProductosItem> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +59,9 @@ class ProductsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        //Creamos el servicio de retrofit, antes devolver la vista para el fragment
+        retrofitService = RetrofitServiceFactory.makeRetrofitService()
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_products, container, false)
     }
@@ -64,33 +71,49 @@ class ProductsFragment : Fragment() {
         //Creamos los componentes
         initComponents(view);
         initListeners(view);
-
     }
 
     private fun initListeners(view: View) {
-        svInputSearch.setOnQueryTextListener(object :SearchView.OnQueryTextListener{
-            override fun onQueryTextSubmit(p0: String?): Boolean {
-                val service = RetrofitServiceFactory.makeRetrofitService()
-                lifecycleScope.launch {
-                    val products_result = service.obtenerProductos(p0.toString())
+        svInputSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                buscarProducto(query.orEmpty())
+                return false
+            }
 
-                    println(products_result)
+            override fun onQueryTextChange(query: String?): Boolean {
+                return false
+            }
+        })
+    }
+
+    private fun buscarProducto(query: String) {
+        //Habilitar la progress bar
+        pbProductos.isVisible =true
+        /**
+         * Lanzar una corrutina en un hilo secundario.
+         * El alcance del hilo IO, es usado para procesos pesados o llamadas a BD
+         */
+        CoroutineScope(Dispatchers.IO).launch {
+            val response: Response<ProductosResponse> = retrofitService.obtenerProductos(query)
+            //println(response)
+            if (response.isSuccessful) {
+                val body: ProductosResponse? = response.body()
+                if (body != null) {
+                    //Actualizamos la UI, en el hilo main
                     withContext(Dispatchers.Main) {
+                        //Ocultar la progress bar
+                        pbProductos.isVisible =false
+
                         // Actualizar la lista de usuarios
                         products.clear()
-                        products.addAll(products_result)
+                        products.addAll(body.products)
 
                         // Notificar al adaptador
                         productsAdapter.notifyDataSetChanged()
                     }
                 }
-                return false
             }
-
-            override fun onQueryTextChange(p0: String?): Boolean {
-                return false
-            }
-        })
+        }
     }
 
     private fun initComponents(view: View) {
@@ -110,27 +133,12 @@ class ProductsFragment : Fragment() {
          * Campo de busqueda
          */
         svInputSearch = view.findViewById(R.id.svInputSearch)
+
+        /**
+         * Barra de progreso
+         */
+        pbProductos = view.findViewById(R.id.pbProducts)
     }
-
-    /*
-    private fun searchUsers(input:String) {
-        val service = RetrofitServiceFactory.makeRetrofitService()
-        lifecycleScope.launch {
-            val products_result = service.obtenerProductos(input)
-
-            println(products_result)
-            withContext(Dispatchers.Main) {
-                // Actualizar la lista de usuarios
-                products.clear()
-                products.addAll(products_result)
-
-                // Notificar al adaptador
-                productsAdapter.notifyDataSetChanged()
-            }
-            //println(products)
-        }
-    }
-    */
 
     companion object {
         /**

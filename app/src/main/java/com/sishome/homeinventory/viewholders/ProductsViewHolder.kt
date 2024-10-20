@@ -1,4 +1,4 @@
-package com.sishome.homeinventory.products
+package com.sishome.homeinventory.viewholders
 
 import android.view.View
 import android.widget.TextView
