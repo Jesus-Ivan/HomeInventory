@@ -1,11 +1,12 @@
-package com.sishome.homeinventory.products
+package com.sishome.homeinventory.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.sishome.homeinventory.R
-import com.sishome.homeinventory.data.model.Productos
+
 import com.sishome.homeinventory.data.model.ProductosItem
+import com.sishome.homeinventory.viewholders.ProductsViewHolder
 
 class ProductsAdapter(var products:List<ProductosItem>) : RecyclerView.Adapter<ProductsViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductsViewHolder {

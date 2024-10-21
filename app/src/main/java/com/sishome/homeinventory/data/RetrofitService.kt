@@ -1,10 +1,16 @@
 package com.sishome.homeinventory.data
 
-import com.sishome.homeinventory.data.model.Productos
 import com.sishome.homeinventory.data.model.ProductosItem
+import com.sishome.homeinventory.data.model.ProductosResponse
+import okhttp3.RequestBody
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
+import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -21,10 +27,18 @@ interface RetrofitService {
     @GET("api/productos")
     suspend fun obtenerProductos(
         @Query("producto") producto: String
-    ): Productos
+    ): Response<ProductosResponse>
 
     @GET("api/productos/{codigo_barra}")
-    suspend fun obtenerProducto(): ProductosItem
+    suspend fun obtenerProducto(
+        @Path("codigo_barra") codigo_barra:Int
+    ):Response<ProductosItem>
+
+    @PUT("api/productos/{id}")
+    suspend fun actualizarProducto(
+        @Path("id") id:Int,
+        @Body producto: ProductosItem
+    ):Response<ProductosItem>
 
 }
 

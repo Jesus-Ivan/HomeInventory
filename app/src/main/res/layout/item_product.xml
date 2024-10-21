@@ -6,7 +6,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     app:cardBackgroundColor="@color/card_bg_gray"
     app:cardCornerRadius="16dp"
-    android:layout_margin="5dp"
+    android:layout_marginVertical="10dp"
+    android:layout_marginHorizontal="5dp"
     >
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -17,10 +18,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             tools:text="Nombre"
-            android:textAllCaps="true"
-            android:textStyle="bold"
-            android:textSize="24sp"
-            android:textColor="@color/black"
+            style="@style/product_name"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -34,18 +32,40 @@
             app:layout_constraintStart_toEndOf="@+id/tvNombre"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/tvPrecio"
+            android:orientation="vertical"
+            android:padding="8dp"
+            >
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                tools:text="Precio: $"
-                android:textSize="18sp"/>
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/moneda"
+                    android:textSize="26sp"
+                    android:layout_marginHorizontal="4dp"
+                    android:textStyle="bold"
+                    />
+                <TextView
+                    android:id="@+id/tvPrecio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="99.99"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/otros"/>
             <TextView
                 android:id="@+id/tvObservaciones"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="Observaciones: "/>
+                android:layout_height="match_parent"
+                tools:text="Example text"/>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
