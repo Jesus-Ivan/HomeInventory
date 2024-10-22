@@ -1,5 +1,6 @@
 package com.sishome.homeinventory.edit_activities
 
+import android.app.Dialog
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -36,8 +37,8 @@ class EditProduct : AppCompatActivity() {
     private lateinit var etCodigoBarra: EditText
     private lateinit var etOtros: EditText
     private lateinit var pbLoading: ProgressBar
-    private lateinit var llEdit :LinearLayout
-    private lateinit var btnSave :Button
+    private lateinit var llEdit: LinearLayout
+    private lateinit var btnSave: Button
 
     //Servicio de retrofit
     private lateinit var retrofitService: RetrofitService
@@ -63,6 +64,12 @@ class EditProduct : AppCompatActivity() {
 
     private fun initListeners() {
         btnSave.setOnClickListener {
+            //Creamos un nuevo dialog
+            val dialog = createDialog()
+            //mostramos el dialogo
+            dialog.show()
+
+            //Lanzamos en una corrutina el proceso completo para actualizar
             CoroutineScope(Dispatchers.IO).launch {
                 //Creamos el objeto a actualizar
                 val producto: ProductosItem = ProductosItem(
@@ -75,19 +82,30 @@ class EditProduct : AppCompatActivity() {
                     etNombre.text.toString()
                 )
                 //Hacer llamada a la api
-                val response: Response<ProductosItem> = retrofitService.actualizarProducto(idProducto, producto)
-                withContext(Dispatchers.Main){
-                    if (response.isSuccessful){
+                val response: Response<ProductosItem> =
+                    retrofitService.actualizarProducto(idProducto, producto)
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
                         Toast.makeText(this@EditProduct, "Exito :D!", Toast.LENGTH_SHORT).show()
-                    }else{
+                        onBackPressed()
+                    } else {
                         Toast.makeText(this@EditProduct, "Error :(", Toast.LENGTH_SHORT).show()
                     }
-
+                    dialog.hide()
                 }
-
             }
-
         }
+    }
+
+    private fun createDialog(): Dialog {
+        //Crear el dialogo
+        val dialog: Dialog = Dialog(this)
+        //Enganchar la vista al dialogo
+        dialog.setContentView(R.layout.loading_dialog)
+        /**
+         * Como este dialogo solo es inidicador de carga, no es necesario hacer nada mas.
+         */
+        return dialog
     }
 
     private fun searchProduct() {

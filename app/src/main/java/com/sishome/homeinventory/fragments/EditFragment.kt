@@ -100,6 +100,7 @@ class EditFragment : Fragment() {
         rvProductsGrid  = view.findViewById(R.id.rvProductsGrid)
         //definir el manejador del layouts del recyclerview
         rvProductsGrid.layoutManager = GridLayoutManager(view.context,2)
+
         //configurar el recyclerview, con su adaptador
         rvProductsGrid.adapter = productsAdapter;
 
@@ -110,7 +111,7 @@ class EditFragment : Fragment() {
             val intent = Intent(view.context, NewProduct::class.java)
             startActivity(intent)
         }
-        
+
         search.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
@@ -123,9 +124,8 @@ class EditFragment : Fragment() {
                 return false
             }
         })
-        
-    }
 
+    }
     private fun buscarProductos(newText: String) {
         //Habilitar la progress bar
         pbProducts.isVisible = true
@@ -156,6 +156,9 @@ class EditFragment : Fragment() {
         }
     }
 
+    private fun changedItem(position: Int, info:ProductosItem){
+
+    }
     companion object {
         /**
          * Use this factory method to create a new instance of

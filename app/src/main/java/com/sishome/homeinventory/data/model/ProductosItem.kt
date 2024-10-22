@@ -3,11 +3,11 @@ package com.sishome.homeinventory.data.model
 import com.google.gson.annotations.SerializedName
 
 data class ProductosItem(
-    val codigo_barra: String ="",
-    val id: Int = 0,
-    val nombre2: String ="",
-    val observaciones: String ="",
-    val precio_compra: String ="",
-    val precio_venta: String ="",
-    val producto: String =""
+    @SerializedName("codigo_barras") val codigo_barra: String ="",
+    @SerializedName("id") val id: Int = 0,
+    @SerializedName("nombre2") val nombre2: String ="",
+    @SerializedName("observaciones") val observaciones: String ="",
+    @SerializedName("precio_compra") val precio_compra: String ="",
+    @SerializedName("precio_venta") val precio_venta: String ="",
+    @SerializedName("producto") val producto: String =""
 )

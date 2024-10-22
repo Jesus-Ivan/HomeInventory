@@ -19,5 +19,7 @@
     <string name="otros">Otros:</string>
 
     <string name="save">Guardar</string>
+    <string name="processing">Procesando...</string>
+
 
 </resources>
