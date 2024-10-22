@@ -58,14 +58,17 @@
             android:id="@+id/etNombre"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
             android:hint="@string/nombre_field"
-            android:layout_marginVertical="8dp"/>
+            android:singleLine="true" />
+
         <EditText
             android:id="@+id/edNombre2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
             android:hint="@string/nombre_2_field"
-            android:layout_marginVertical="8dp"/>
+            android:singleLine="true" />
         <EditText
             android:id="@+id/etPrecioCompra"
             android:layout_width="match_parent"
@@ -80,18 +83,22 @@
             android:layout_marginVertical="8dp"
             android:hint="@string/precio_venta_field"
             android:inputType="number|numberDecimal" />
+
         <EditText
             android:id="@+id/etCodigoBarra"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
             android:hint="@string/codigo_barras_field"
-            android:layout_marginVertical="8dp"/>
+            android:singleLine="true" />
+
         <EditText
             android:id="@+id/etOtros"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
             android:hint="@string/observaciones_field"
-            android:layout_marginVertical="8dp"/>
+            android:singleLine="true" />
     </LinearLayout>
     <Button
         android:id="@+id/btnSave"

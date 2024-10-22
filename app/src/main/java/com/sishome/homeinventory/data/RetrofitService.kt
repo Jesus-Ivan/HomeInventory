@@ -9,6 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
+import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
@@ -29,9 +30,14 @@ interface RetrofitService {
         @Query("producto") producto: String
     ): Response<ProductosResponse>
 
-    @GET("api/productos/{codigo_barra}")
+    @GET("api/productos/{id}")
     suspend fun obtenerProducto(
-        @Path("codigo_barra") codigo_barra:Int
+        @Path("id") id:Int
+    ):Response<ProductosItem>
+
+    @POST("api/productos")
+    suspend fun crearProducto(
+        @Body producto: ProductosItem
     ):Response<ProductosItem>
 
     @PUT("api/productos/{id}")
