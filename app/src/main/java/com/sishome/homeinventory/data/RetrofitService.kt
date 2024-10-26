@@ -7,6 +7,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -18,13 +19,6 @@ import retrofit2.http.Query
 
 interface RetrofitService {
 
-    /*
-    @GET("users/{id}")
-    suspend fun obtenerUsuario(
-        @Path("id") id: Int
-    ):UsersResultItem
-    */
-
     @GET("api/productos")
     suspend fun obtenerProductos(
         @Query("producto") producto: String
@@ -32,19 +26,24 @@ interface RetrofitService {
 
     @GET("api/productos/{id}")
     suspend fun obtenerProducto(
-        @Path("id") id:Int
-    ):Response<ProductosItem>
+        @Path("id") id: Int
+    ): Response<ProductosItem>
 
     @POST("api/productos")
     suspend fun crearProducto(
         @Body producto: ProductosItem
-    ):Response<ProductosItem>
+    ): Response<ProductosItem>
 
     @PUT("api/productos/{id}")
     suspend fun actualizarProducto(
-        @Path("id") id:Int,
+        @Path("id") id: Int,
         @Body producto: ProductosItem
-    ):Response<ProductosItem>
+    ): Response<ProductosItem>
+
+    @DELETE("api/productos/{id}")
+    suspend fun eliminarProducto(
+        @Path("id") id: Int
+    ): Response<Any>
 
 }
 

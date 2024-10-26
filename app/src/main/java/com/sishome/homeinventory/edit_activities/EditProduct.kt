@@ -84,7 +84,8 @@ class EditProduct : AppCompatActivity() {
                 //Hacer llamada a la api
                 val response: Response<ProductosItem> =
                     retrofitService.actualizarProducto(idProducto, producto)
-                withContext(Dispatchers.Main) {
+                //Mostramos en el hilo principal, el toast
+                runOnUiThread {
                     if (response.isSuccessful) {
                         Toast.makeText(this@EditProduct, "Exito :D!", Toast.LENGTH_SHORT).show()
                         onBackPressed()
