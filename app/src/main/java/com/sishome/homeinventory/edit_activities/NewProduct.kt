@@ -72,8 +72,8 @@ class NewProduct : AppCompatActivity() {
             )
             //llamar a retrofit
             val response: Response<ProductosItem> = retrofitService.crearProducto(product)
-
-            withContext(Dispatchers.Main) {
+            //Ejecutar acciones en la UI, en el hilo principal
+            runOnUiThread {
                 if (response.isSuccessful) {
                     Toast.makeText(this@NewProduct, "Exito :"+ response.body()?.id.toString(), Toast.LENGTH_SHORT).show()
                     reset()
@@ -89,7 +89,7 @@ class NewProduct : AppCompatActivity() {
         etCodigoBarra.text.clear()
         etNombre2.text.clear()
         etOtros.text.clear()
-        etPrecioCompra.text.clear()
+        etPrecioCompra.setText("0")        //Precio de compra por defecto = 0
         etPrecioVenta.text.clear()
         etNombre.text.clear()
         etNombre.text.clear()
@@ -111,6 +111,7 @@ class NewProduct : AppCompatActivity() {
         etNombre = findViewById(R.id.etNombre_new)
         etNombre2 = findViewById(R.id.etNombre2_new)
         etPrecioCompra = findViewById(R.id.etPrecioCompra_new)
+        etPrecioCompra.setText("0")        //Precio de compra por defecto = 0
         etPrecioVenta = findViewById(R.id.etPrecioVenta_new)
         etCodigoBarra = findViewById(R.id.etCodigoBarra_new)
         etOtros = findViewById(R.id.etOtros_new)

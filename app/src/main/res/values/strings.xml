@@ -20,6 +20,10 @@
 
     <string name="save">Guardar</string>
     <string name="processing">Procesando...</string>
+    <string name="delete_dialog">¿Desea eliminar?</string>
+    <string name="delete_dialog_ok">Aceptar</string>
+    <string name="delete_dialog_cancel">Cancelar</string>
+    <string name="delete_dialog_procesing">Eliminando...</string>
 
 
 </resources>

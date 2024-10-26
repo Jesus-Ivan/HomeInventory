@@ -1,12 +1,17 @@
 package com.sishome.homeinventory.fragments
 
+import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
@@ -32,13 +37,6 @@ import retrofit2.Response
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-/*
-    * Definimos un "atributo estatico"
-    * que nos permita almacenar las llaves de las variables que se ponen en los Extras,
-    * al lanzar una activity
-    * */
-
-
 class EditFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
@@ -48,15 +46,23 @@ class EditFragment : Fragment() {
     //Variables referentes al UI
     private lateinit var search: SearchView;
     private lateinit var rvProductsGrid: RecyclerView
-    private lateinit var fabAddProducto :FloatingActionButton
-    private lateinit var pbProducts : ProgressBar
+    private lateinit var fabAddProducto: FloatingActionButton
+    private lateinit var pbProducts: ProgressBar
+
+    //Componentes del dialog
+    private lateinit var dConfirmDelete: Dialog
+    private lateinit var tvProducto: TextView
+    private lateinit var btnConfirmDelete: Button
+    private lateinit var btnCancelDelete: Button
+    private lateinit var tvDeleteMain:TextView
+    private lateinit var llDeleteProcesing :LinearLayout
+
     //Servicio de retrofit
     private lateinit var retrofitService: RetrofitService
 
     //lista de productos
-    private var products : MutableList<ProductosItem> = mutableListOf()
-    private lateinit var productsAdapter : EditAdapter
-
+    private var products: MutableList<ProductosItem> = mutableListOf()
+    private lateinit var productsAdapter: EditAdapter
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,28 +89,45 @@ class EditFragment : Fragment() {
         initListeners(view)
     }
 
-    private fun initComponents(view: View){
+    private fun initComponents(view: View) {
         //Barra de busqueda
         search = view.findViewById(R.id.search)
         //Boton de añadir producto
         fabAddProducto = view.findViewById(R.id.fabAddProducto)
         //Progress bar
         pbProducts = view.findViewById(R.id.pbProducts)
+        /**
+         * Dialog de eliminacion
+         */
+        //Dialogo de eliminacion
+        dConfirmDelete = Dialog(view.context)
+        //Enganchar la vista al dialog
+        dConfirmDelete.setContentView(R.layout.delete_dialog)
+        //componentes internos del dialog
+        tvProducto = dConfirmDelete.findViewById(R.id.tvConfirmDialog)
+        btnConfirmDelete = dConfirmDelete.findViewById(R.id.btnConfirmDelete)
+        btnCancelDelete = dConfirmDelete.findViewById(R.id.btnCancelDelete)
+        //Titulo principal
+        tvDeleteMain = dConfirmDelete.findViewById(R.id.tvDeleteMain)
+        //Titulo secundario de carga
+        llDeleteProcesing = dConfirmDelete.findViewById(R.id.llDeleteProcesing)
+
 
         /**
          * Recycler view
          */
         //Asignar los valores al adaptador
-        productsAdapter = EditAdapter(products)
+        productsAdapter = EditAdapter(products) { deleteProduct(it) }
         //  Iniciar el recyclerview
-        rvProductsGrid  = view.findViewById(R.id.rvProductsGrid)
+        rvProductsGrid = view.findViewById(R.id.rvProductsGrid)
         //definir el manejador del layouts del recyclerview
-        rvProductsGrid.layoutManager = GridLayoutManager(view.context,2)
+        rvProductsGrid.layoutManager = GridLayoutManager(view.context, 2)
 
         //configurar el recyclerview, con su adaptador
         rvProductsGrid.adapter = productsAdapter;
 
     }
+
     private fun initListeners(view: View) {
         //Boton de añadir nuevo producto
         fabAddProducto.setOnClickListener {
@@ -112,13 +135,16 @@ class EditFragment : Fragment() {
             startActivity(intent)
         }
 
-        search.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+        //Agregar listener de cancelar
+        btnCancelDelete.setOnClickListener { dConfirmDelete.hide() }
+
+        search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText !=null){
+                if (newText != null) {
                     buscarProductos(newText);
                 }
                 return false
@@ -126,6 +152,7 @@ class EditFragment : Fragment() {
         })
 
     }
+
     private fun buscarProductos(newText: String) {
         //Habilitar la progress bar
         pbProducts.isVisible = true
@@ -142,7 +169,7 @@ class EditFragment : Fragment() {
                     //Actualizamos la UI, en el hilo main
                     withContext(Dispatchers.Main) {
                         //Ocultar la progress bar
-                        pbProducts.isVisible =false
+                        pbProducts.isVisible = false
 
                         // Actualizar la lista de usuarios
                         products.clear()
@@ -156,9 +183,56 @@ class EditFragment : Fragment() {
         }
     }
 
-    private fun changedItem(position: Int, info:ProductosItem){
+    private fun deleteProduct(position: Int) {
+        //Ajustar el nombre
+        tvProducto.text = products[position].producto
+        //mostrar el dialogo
+        dConfirmDelete.show()
+        //Agregar listener de borrar
+        btnConfirmDelete.setOnClickListener { confirmDelete(position) }
+
 
     }
+
+    private fun confirmDelete(position: Int) {
+        enableItemsDialog(false)
+        /**
+         * Lanzar en corrutina
+         */
+        CoroutineScope(Dispatchers.IO).launch {
+            //Ejecutar llamada a API
+            val response: Response<Any> = retrofitService.eliminarProducto(products[position].id)
+            //Cuando se recibe la respuesta
+            withContext(Dispatchers.Main) {
+                if (response.isSuccessful) {
+                    //Eliminar de la lista el item
+                    products.removeAt(position)
+                    //Eliminar del adapter
+                    productsAdapter.notifyItemRemoved(position)
+                    //Toast
+                    Toast.makeText(this@EditFragment.context, "Exito :D", Toast.LENGTH_SHORT).show()
+                }else{
+                    Toast.makeText(this@EditFragment.context, "Algo ha ido mal :C", Toast.LENGTH_SHORT).show()
+                }
+                dConfirmDelete.hide()
+                enableItemsDialog(true)
+            }
+        }
+    }
+
+    /**
+     * Habilita o deshabilita los componentes internos de dialog de eliminacion
+     */
+    private fun enableItemsDialog(enabled: Boolean){
+        //Ocultamos partes del dialog.
+        tvDeleteMain.isVisible = enabled
+        btnConfirmDelete.isVisible = enabled
+        btnCancelDelete.isVisible = enabled
+
+        //Habilitamos el menu de carga
+        llDeleteProcesing.isVisible = !enabled
+    }
+
     companion object {
         /**
          * Use this factory method to create a new instance of
