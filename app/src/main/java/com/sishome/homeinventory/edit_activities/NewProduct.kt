@@ -23,13 +23,13 @@ class NewProduct : AppCompatActivity() {
     /**
      * Variables correspondientes a los componentes
      */
-    private lateinit var etNombre :EditText
-    private lateinit var etNombre2 :EditText
-    private lateinit var etPrecioCompra :EditText
-    private lateinit var etPrecioVenta :EditText
-    private lateinit var etCodigoBarra :EditText
-    private lateinit var etOtros :EditText
-    private lateinit var btnSave :Button
+    private lateinit var etNombre: EditText
+    private lateinit var etNombre2: EditText
+    private lateinit var etPrecioCompra: EditText
+    private lateinit var etPrecioVenta: EditText
+    private lateinit var etCodigoBarra: EditText
+    private lateinit var etOtros: EditText
+    private lateinit var btnSave: Button
 
     //Servicio de retrofit
     private lateinit var retrofitService: RetrofitService
@@ -70,18 +70,33 @@ class NewProduct : AppCompatActivity() {
                 etPrecioVenta.text.toString(),
                 etNombre.text.toString()
             )
-            //llamar a retrofit
-            val response: Response<ProductosItem> = retrofitService.crearProducto(product)
-            //Ejecutar acciones en la UI, en el hilo principal
-            runOnUiThread {
+            try {
+                //llamar a retrofit
+                val response: Response<ProductosItem> = retrofitService.crearProducto(product)
+
                 if (response.isSuccessful) {
-                    Toast.makeText(this@NewProduct, "Exito :"+ response.body()?.id.toString(), Toast.LENGTH_SHORT).show()
-                    reset()
+                    //Ejecutar acciones en la UI, en el hilo principal
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@NewProduct,
+                            "Exito :" + response.body()?.id.toString(),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        reset()     //Limpiar imputs
+                    }
                 } else {
-                    Toast.makeText(this@NewProduct, "Error :(", Toast.LENGTH_SHORT).show()
+                    throw Exception("Algo ha ido mal :C")
                 }
-                dialog.hide()
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this@NewProduct, e.message, Toast.LENGTH_SHORT).show()
+                }
             }
+            finally {
+                //Ocultar el dialogo de carga
+                runOnUiThread { dialog.hide() }
+            }
+
         }
     }
 

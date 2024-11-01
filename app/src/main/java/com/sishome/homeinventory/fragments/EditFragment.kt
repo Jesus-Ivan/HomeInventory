@@ -54,8 +54,8 @@ class EditFragment : Fragment() {
     private lateinit var tvProducto: TextView
     private lateinit var btnConfirmDelete: Button
     private lateinit var btnCancelDelete: Button
-    private lateinit var tvDeleteMain:TextView
-    private lateinit var llDeleteProcesing :LinearLayout
+    private lateinit var tvDeleteMain: TextView
+    private lateinit var llDeleteProcesing: LinearLayout
 
     //Servicio de retrofit
     private lateinit var retrofitService: RetrofitService
@@ -161,25 +161,37 @@ class EditFragment : Fragment() {
          * El alcance del hilo IO, es usado para procesos pesados o llamadas a BD
          */
         CoroutineScope(Dispatchers.IO).launch {
-            val response: Response<ProductosResponse> = retrofitService.obtenerProductos(newText)
-            //println(response)
-            if (response.isSuccessful) {
-                val body: ProductosResponse? = response.body()
-                if (body != null) {
-                    //Actualizamos la UI, en el hilo main
-                    withContext(Dispatchers.Main) {
-                        //Ocultar la progress bar
-                        pbProducts.isVisible = false
+            try {
+                //Llamada a la API
+                val response: Response<ProductosResponse> =
+                    retrofitService.obtenerProductos(newText)
 
-                        // Actualizar la lista de usuarios
-                        products.clear()
-                        products.addAll(body.products)
+                if (response.isSuccessful) {
+                    //Estraer el cuerpo de la respuesta
+                    val body: ProductosResponse? = response.body()
+                    if (body != null) {
+                        //Actualizamos la UI, en el hilo main
+                        withContext(Dispatchers.Main) {
+                            //Ocultar la progress bar
+                            pbProducts.isVisible = false
 
-                        // Notificar al adaptador
-                        productsAdapter.notifyDataSetChanged()
+                            // Actualizar la lista de usuarios
+                            products.clear()
+                            products.addAll(body.products)
+
+                            // Notificar al adaptador
+                            productsAdapter.notifyDataSetChanged()
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    //Ocultar la progress bar
+                    pbProducts.isVisible = false
+                    Toast.makeText(this@EditFragment.context, e.message, Toast.LENGTH_SHORT).show()
+                }
             }
+
         }
     }
 
@@ -190,40 +202,48 @@ class EditFragment : Fragment() {
         dConfirmDelete.show()
         //Agregar listener de borrar
         btnConfirmDelete.setOnClickListener { confirmDelete(position) }
-
-
     }
 
     private fun confirmDelete(position: Int) {
-        enableItemsDialog(false)
+        enableItemsDialog(false)        //Deshabilitar botones
         /**
          * Lanzar en corrutina
          */
         CoroutineScope(Dispatchers.IO).launch {
-            //Ejecutar llamada a API
-            val response: Response<Any> = retrofitService.eliminarProducto(products[position].id)
-            //Cuando se recibe la respuesta
-            withContext(Dispatchers.Main) {
+            try {
+                //Ejecutar llamada a API
+                val response: Response<Any> =
+                    retrofitService.eliminarProducto(products[position].id)
+                //Cuando se recibe la respuesta
                 if (response.isSuccessful) {
-                    //Eliminar de la lista el item
-                    products.removeAt(position)
-                    //Eliminar del adapter
-                    productsAdapter.notifyItemRemoved(position)
-                    //Toast
-                    Toast.makeText(this@EditFragment.context, "Exito :D", Toast.LENGTH_SHORT).show()
-                }else{
-                    Toast.makeText(this@EditFragment.context, "Algo ha ido mal :C", Toast.LENGTH_SHORT).show()
+                    withContext(Dispatchers.Main) {
+                        //Eliminar de la lista el item
+                        products.removeAt(position)
+                        //Eliminar del adapter
+                        productsAdapter.notifyItemRemoved(position)
+                    }
+                } else {
+                    throw Exception("Algo ha ido mal al borrar :C")
                 }
-                dConfirmDelete.hide()
-                enableItemsDialog(true)
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@EditFragment.context, e.message, Toast.LENGTH_SHORT).show()
+                }
+            }finally {
+                withContext(Dispatchers.Main){
+                    dConfirmDelete.hide()       //ocultar el cuadro de dialogo
+                    enableItemsDialog(true) //Habilitar denuevo los botones
+                }
             }
         }
+
+
     }
 
     /**
      * Habilita o deshabilita los componentes internos de dialog de eliminacion
      */
-    private fun enableItemsDialog(enabled: Boolean){
+    private fun enableItemsDialog(enabled: Boolean) {
         //Ocultamos partes del dialog.
         tvDeleteMain.isVisible = enabled
         btnConfirmDelete.isVisible = enabled

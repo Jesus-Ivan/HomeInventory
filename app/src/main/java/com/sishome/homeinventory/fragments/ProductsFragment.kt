@@ -1,11 +1,13 @@
 package com.sishome.homeinventory.fragments
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -77,6 +79,8 @@ class ProductsFragment : Fragment() {
         svInputSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 buscarProducto(query.orEmpty())
+                //Limpiar el campo de busqueda
+                svInputSearch.setQuery("",false)
                 return false
             }
 
@@ -94,23 +98,33 @@ class ProductsFragment : Fragment() {
          * El alcance del hilo IO, es usado para procesos pesados o llamadas a BD
          */
         CoroutineScope(Dispatchers.IO).launch {
-            val response: Response<ProductosResponse> = retrofitService.obtenerProductos(query)
-            //println(response)
-            if (response.isSuccessful) {
-                val body: ProductosResponse? = response.body()
-                if (body != null) {
-                    //Actualizamos la UI, en el hilo main
-                    withContext(Dispatchers.Main) {
-                        //Ocultar la progress bar
-                        pbProductos.isVisible =false
+            try {
+                val response: Response<ProductosResponse> = retrofitService.obtenerProductos(query)
 
-                        // Actualizar la lista de usuarios
-                        products.clear()
-                        products.addAll(body.products)
+                if (response.isSuccessful) {
+                    val body: ProductosResponse? = response.body()
+                    if (body != null) {
+                        //Actualizamos la UI, en el hilo main
+                        withContext(Dispatchers.Main) {
+                            //Ocultar la progress bar
+                            pbProductos.isVisible =false
 
-                        // Notificar al adaptador
-                        productsAdapter.notifyDataSetChanged()
+                            // Actualizar la lista de usuarios
+                            products.clear()
+                            products.addAll(body.products)
+
+                            // Notificar al adaptador
+                            productsAdapter.notifyDataSetChanged()
+                        }
                     }
+                }
+            }catch (e: Exception){
+                // Manejar la excepción, en el hilo principal
+                withContext(Dispatchers.Main){
+                    //Mostrar toast de error
+                    Toast.makeText(this@ProductsFragment.context,e.message,Toast.LENGTH_SHORT).show()
+                    //Ocultar la progressbar
+                    pbProductos.isVisible = false
                 }
             }
         }
