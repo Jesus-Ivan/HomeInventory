@@ -1,28 +1,29 @@
 package com.sishome.homeinventory
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.sishome.homeinventory.fragments.CustomersFragment
 import com.sishome.homeinventory.fragments.EditFragment
 import com.sishome.homeinventory.fragments.ProductsFragment
+import com.sishome.homeinventory.view_models.MainViewModel
 
 class MainActivity : AppCompatActivity() {
     private lateinit var bnPrincipal: BottomNavigationView
     private lateinit var fcPrincipal: FragmentContainerView
+    private val viewModel: MainViewModel by viewModels()
 
     /*
     * Definimos un "atributo estatico"
     * que nos permita almacenar las llaves de las variables que se ponen en los Extras,
     * al lanzar una activity
     * */
-    companion object{
+    companion object {
         const val ID_PRODUCT_KEY = "id_product"
     }
 
@@ -37,8 +38,7 @@ class MainActivity : AppCompatActivity() {
         }
         initComponents()
         initListeners()
-        replaceFragment(ProductsFragment())
-
+        updateFragment()
     }
 
     private fun initComponents() {
@@ -50,19 +50,21 @@ class MainActivity : AppCompatActivity() {
     private fun initListeners() {
         bnPrincipal.setOnItemSelectedListener {
             when (it.itemId) {
-                R.id.vProductos -> replaceFragment(ProductsFragment())
-                R.id.vClientes -> replaceFragment(CustomersFragment())
-                R.id.vEditar -> replaceFragment(EditFragment())
+                R.id.vProductos -> viewModel.saveCurrentFragment(ProductsFragment())
+                R.id.vClientes -> viewModel.saveCurrentFragment(CustomersFragment())
+                R.id.vEditar -> viewModel.saveCurrentFragment(EditFragment())
                 else -> {}
             }
+            updateFragment()
             true
         }
     }
 
-    private fun replaceFragment(fragment: Fragment) {
+    private fun updateFragment() {
+        //Modificar la vista
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.fcPrincipal, fragment)
+        fragmentTransaction.replace(R.id.fcPrincipal, viewModel.currentFragment)
         fragmentTransaction.commit()
     }
 

@@ -5,7 +5,7 @@
     android:orientation="horizontal"
     android:gravity="center"
     android:padding="18dp"
-    android:background="@color/card_bg_gray"
+    android:background="@color/card_bg"
     >
     <ProgressBar
         android:layout_width="28sp"

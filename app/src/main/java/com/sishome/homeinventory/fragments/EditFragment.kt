@@ -25,7 +25,7 @@ import com.sishome.homeinventory.data.RetrofitServiceFactory
 import com.sishome.homeinventory.data.model.ProductosItem
 import com.sishome.homeinventory.data.model.ProductosResponse
 import com.sishome.homeinventory.edit_activities.NewProduct
-import com.sishome.homeinventory.adapters.ProductsAdapter
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -63,7 +63,6 @@ class EditFragment : Fragment() {
     //lista de productos
     private var products: MutableList<ProductosItem> = mutableListOf()
     private lateinit var productsAdapter: EditAdapter
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

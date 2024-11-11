@@ -36,6 +36,7 @@ android {
 }
 
 dependencies {
+    val lifecycle_version = "2.8.5"
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -50,5 +51,8 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(kotlin("script-runtime"))
     implementation ("com.google.android.material:material:1.3.0-alpha03")
+
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
 
 }
