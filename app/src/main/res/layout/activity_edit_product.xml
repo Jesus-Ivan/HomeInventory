@@ -38,9 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/tittle_edit"
-                android:textSize="24sp"
-                android:textAllCaps="true"
-                android:textColor="@color/black"
+                style="@style/tittle_activity"
                 />
             <TextView
                 android:id="@+id/tvIdProducto"
@@ -48,9 +46,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 tools:text="1"
-                android:textSize="24sp"
-                android:textAllCaps="true"
-                android:textColor="@color/black"
+                style="@style/tittle_activity"
                 />
         </LinearLayout>
 

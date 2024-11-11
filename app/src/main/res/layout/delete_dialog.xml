@@ -10,17 +10,15 @@
     app:layout_constraintEnd_toEndOf="parent"
     android:padding="12dp"
     android:gravity="center"
-    android:background="@color/card_bg_gray">
+    android:background="@color/card_bg">
 
     <TextView
         android:id="@+id/tvDeleteMain"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/delete_dialog"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textAllCaps="true"
-        android:textColor="@color/black" />
+        style="@style/tittle_dialog"
+         />
 
     <LinearLayout
         android:id="@+id/llDeleteProcesing"

@@ -121,15 +121,16 @@ class EditProduct : AppCompatActivity() {
                 val product: ProductosItem? = response.body()
                 if (product != null) {
                     //Actualizamos la UI, en el hilo main
-                    withContext(Dispatchers.Main) {
+                    runOnUiThread {
                         //Ocultar la progress bar
                         pbLoading.isVisible = false
                         //Mostrar la UI
                         llEdit.isVisible = true
                         btnSave.isVisible = true
+                        //Settear los valores de los inputs
+                        setValuesProduct(product)
                     }
-                    //Settear los valores de los inputs
-                    setValuesProduct(product)
+
                 }
             }
         }

@@ -8,8 +8,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="card_bg">#F1F1F1</color>
-    <color name="price_color">#089F28</color>
+    <color name="card_bg">#272727</color>
+    <color name="price_color">#67F485</color>
     <color name="red">#CA1B4D</color>
 
 
