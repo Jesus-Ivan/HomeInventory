@@ -12,6 +12,8 @@
     <color name="price_color">#67F485</color>
     <color name="red">#CA1B4D</color>
 
+    <color name="btn_icon_camera_background">#00FFFFFF</color>
+    <color name="btn_icon_camera_foreground">#B4B4B4</color>
 
 
 

@@ -1,28 +1,34 @@
 package com.sishome.homeinventory.fragments
 
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanIntentResult
+import com.journeyapps.barcodescanner.ScanOptions
 import com.sishome.homeinventory.R
+import com.sishome.homeinventory.adapters.ProductsAdapter
 import com.sishome.homeinventory.data.RetrofitService
 import com.sishome.homeinventory.data.RetrofitServiceFactory
 import com.sishome.homeinventory.data.model.ProductosItem
 import com.sishome.homeinventory.data.model.ProductosResponse
-import com.sishome.homeinventory.adapters.ProductsAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -44,10 +50,14 @@ class ProductsFragment : Fragment() {
     private lateinit var productsAdapter: ProductsAdapter
     private lateinit var svInputSearch: SearchView
     private lateinit var pbProductos :ProgressBar
+    private lateinit var btnCamera :ImageButton
 
     private lateinit var retrofitService: RetrofitService
 
     private val products: MutableList<ProductosItem> = mutableListOf()
+
+    //Camara scaner
+    private var barcodeLauncher : ActivityResultLauncher<ScanOptions>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,7 +85,14 @@ class ProductsFragment : Fragment() {
         initListeners(view);
     }
 
+    override fun onResume() {
+        super.onResume()
+        //Solicitar el foco para el searchview
+        svInputSearch.requestFocus()
+    }
+
     private fun initListeners(view: View) {
+        //Listener del campo de busqueda
         svInputSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 buscarProducto(query.orEmpty())
@@ -88,6 +105,11 @@ class ProductsFragment : Fragment() {
                 return false
             }
         })
+        //Listener del boton de camara
+        btnCamera.setOnClickListener {
+            barcodeLauncher!!.launch(ScanOptions().setOrientationLocked(false))
+        }
+
     }
 
     private fun buscarProducto(query: String) {
@@ -152,6 +174,26 @@ class ProductsFragment : Fragment() {
          * Barra de progreso
          */
         pbProductos = view.findViewById(R.id.pbProducts)
+
+        //Boton de la camara
+        btnCamera = view.findViewById(R.id.btnCamera)
+        /**
+         * Inicializar el scaner
+         */
+        barcodeLauncher = registerForActivityResult<ScanOptions, ScanIntentResult>(
+            ScanContract()
+        ) { result: ScanIntentResult ->
+            if (result.contents == null) {
+                Toast.makeText(this@ProductsFragment.context, "Cancelled", Toast.LENGTH_LONG).show()
+            } else {
+                buscarProducto(result.contents)
+                Toast.makeText(
+                    this@ProductsFragment.context,
+                    "Scanned: " + result.contents,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     companion object {

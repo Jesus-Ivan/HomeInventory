@@ -4,11 +4,16 @@ import android.app.Dialog
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanIntentResult
+import com.journeyapps.barcodescanner.ScanOptions
 import com.sishome.homeinventory.R
 import com.sishome.homeinventory.data.RetrofitService
 import com.sishome.homeinventory.data.RetrofitServiceFactory
@@ -30,9 +35,12 @@ class NewProduct : AppCompatActivity() {
     private lateinit var etCodigoBarra: EditText
     private lateinit var etOtros: EditText
     private lateinit var btnSave: Button
+    private lateinit var btnCamera : ImageButton
 
     //Servicio de retrofit
     private lateinit var retrofitService: RetrofitService
+    //Camara scaner
+    private var barcodeLauncher : ActivityResultLauncher<ScanOptions>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +59,10 @@ class NewProduct : AppCompatActivity() {
 
     private fun initListeners() {
         btnSave.setOnClickListener { saveProduct() }
+        //Listener del boton de camara
+        btnCamera.setOnClickListener {
+            barcodeLauncher!!.launch(ScanOptions().setOrientationLocked(false))
+        }
     }
 
     private fun saveProduct() {
@@ -131,5 +143,20 @@ class NewProduct : AppCompatActivity() {
         etCodigoBarra = findViewById(R.id.etCodigoBarra_new)
         etOtros = findViewById(R.id.etOtros_new)
         btnSave = findViewById(R.id.btnSave_new)
+
+        btnCamera = findViewById(R.id.btnCamera)
+        /**
+         * Inicializar el scaner
+         */
+        barcodeLauncher = registerForActivityResult<ScanOptions, ScanIntentResult>(
+            ScanContract()
+        ) { result: ScanIntentResult ->
+            if (result.contents == null) {
+                Toast.makeText(this@NewProduct, "Cancelled", Toast.LENGTH_LONG).show()
+            } else {
+                //Llenar el edit text
+                etCodigoBarra.setText(result.contents)
+            }
+        }
     }
 }
