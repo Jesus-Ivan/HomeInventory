@@ -6,8 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".edit_activities.NewProduct"
-    android:padding="8dp"
-    >
+    android:padding="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,24 +14,23 @@
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        >
+        app:layout_constraintEnd_toEndOf="parent">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/tittle_add"
             style="@style/tittle_activity"
             android:textAlignment="center"
-            android:layout_marginVertical="10dp"
-            />
+            android:layout_marginVertical="10dp" />
 
         <EditText
             android:id="@+id/etNombre_new"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="8dp"
             android:hint="@string/nombre_field"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:layout_marginVertical="8dp"/>
 
         <EditText
             android:id="@+id/etNombre2_new"
@@ -58,13 +56,32 @@
             android:hint="@string/precio_venta_field"
             android:inputType="number|numberDecimal" />
 
-        <EditText
-            android:id="@+id/etCodigoBarra_new"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="8dp"
-            android:hint="@string/codigo_barras_field"
-            android:singleLine="true" />
+            android:layout_marginVertical="8dp">
+            <EditText
+                android:id="@+id/etCodigoBarra_new"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btnCamera"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/codigo_barras_field"
+                android:singleLine="true" />
+
+            <ImageButton
+                android:id="@+id/btnCamera"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:backgroundTint="@color/btn_icon_camera_background"
+                android:src="@drawable/ic_scan"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/etCodigoBarra_new"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/btn_icon_camera_foreground" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         <EditText
             android:id="@+id/etOtros_new"
@@ -83,7 +100,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:text="@string/save"
-        />
+        android:text="@string/save" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

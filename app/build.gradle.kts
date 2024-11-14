@@ -55,4 +55,7 @@ dependencies {
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
 
+    //Camara Scan (QR, BARCODE)
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
 }

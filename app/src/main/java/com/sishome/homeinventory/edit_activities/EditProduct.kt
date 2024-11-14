@@ -4,15 +4,20 @@ import android.app.Dialog
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanIntentResult
+import com.journeyapps.barcodescanner.ScanOptions
 import com.sishome.homeinventory.MainActivity.Companion.ID_PRODUCT_KEY
 import com.sishome.homeinventory.R
 import com.sishome.homeinventory.data.RetrofitService
@@ -39,9 +44,12 @@ class EditProduct : AppCompatActivity() {
     private lateinit var pbLoading: ProgressBar
     private lateinit var llEdit: LinearLayout
     private lateinit var btnSave: Button
+    private lateinit var btnCamera : ImageButton
 
     //Servicio de retrofit
     private lateinit var retrofitService: RetrofitService
+    //Camara scaner
+    private var barcodeLauncher : ActivityResultLauncher<ScanOptions>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,6 +103,11 @@ class EditProduct : AppCompatActivity() {
                     dialog.hide()
                 }
             }
+        }
+
+        //Listener del boton de camara
+        btnCamera.setOnClickListener {
+            barcodeLauncher!!.launch(ScanOptions().setOrientationLocked(false))
         }
     }
 
@@ -156,6 +169,20 @@ class EditProduct : AppCompatActivity() {
         pbLoading = findViewById(R.id.pbLoading)
         llEdit = findViewById(R.id.llEdit)
         btnSave = findViewById(R.id.btnSave)
+        btnCamera = findViewById(R.id.btnCamera)
+        /**
+         * Inicializar el scaner
+         */
+        barcodeLauncher = registerForActivityResult<ScanOptions, ScanIntentResult>(
+            ScanContract()
+        ) { result: ScanIntentResult ->
+            if (result.contents == null) {
+                Toast.makeText(this@EditProduct, "Cancelled", Toast.LENGTH_LONG).show()
+            } else {
+                //Llenar el edit text
+                etCodigoBarra.setText(result.contents)
+            }
+        }
     }
 
     private fun initUI() {
