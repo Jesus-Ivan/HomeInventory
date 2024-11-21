@@ -8,16 +8,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanIntentResult
+import com.journeyapps.barcodescanner.ScanOptions
 import com.sishome.homeinventory.R
 import com.sishome.homeinventory.adapters.EditAdapter
 import com.sishome.homeinventory.data.RetrofitService
@@ -48,6 +53,7 @@ class EditFragment : Fragment() {
     private lateinit var rvProductsGrid: RecyclerView
     private lateinit var fabAddProducto: FloatingActionButton
     private lateinit var pbProducts: ProgressBar
+    private lateinit var btnCamera: ImageButton
 
     //Componentes del dialog
     private lateinit var dConfirmDelete: Dialog
@@ -59,6 +65,9 @@ class EditFragment : Fragment() {
 
     //Servicio de retrofit
     private lateinit var retrofitService: RetrofitService
+
+    //Camara scaner
+    private var barcodeLauncher: ActivityResultLauncher<ScanOptions>? = null
 
     //lista de productos
     private var products: MutableList<ProductosItem> = mutableListOf()
@@ -125,6 +134,23 @@ class EditFragment : Fragment() {
         //configurar el recyclerview, con su adaptador
         rvProductsGrid.adapter = productsAdapter;
 
+        //Boton de la camara
+        btnCamera = view.findViewById(R.id.btnCamera)
+        /**
+         * Inicializar el scaner
+         */
+        barcodeLauncher = registerForActivityResult<ScanOptions, ScanIntentResult>(
+            ScanContract()
+        ) { result: ScanIntentResult ->
+            if (result.contents == null) {
+                Toast.makeText(this@EditFragment.context, "Cancelled", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this@EditFragment.context, result.contents, Toast.LENGTH_SHORT)
+                    .show()
+                buscarProductos(result.contents)
+            }
+        }
+
     }
 
     private fun initListeners(view: View) {
@@ -139,16 +165,22 @@ class EditFragment : Fragment() {
 
         search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
+                buscarProductos(query.orEmpty());
+                //Limpiar el campo de busqueda
+                search.setQuery("", false)
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText != null) {
-                    buscarProductos(newText);
-                }
+
                 return false
             }
         })
+
+        //Listener del boton de camara
+        btnCamera.setOnClickListener {
+            barcodeLauncher!!.launch(ScanOptions().setOrientationLocked(false))
+        }
 
     }
 
@@ -228,8 +260,8 @@ class EditFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@EditFragment.context, e.message, Toast.LENGTH_SHORT).show()
                 }
-            }finally {
-                withContext(Dispatchers.Main){
+            } finally {
+                withContext(Dispatchers.Main) {
                     dConfirmDelete.hide()       //ocultar el cuadro de dialogo
                     enableItemsDialog(true) //Habilitar denuevo los botones
                 }

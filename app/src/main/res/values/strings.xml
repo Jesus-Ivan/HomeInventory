@@ -25,5 +25,7 @@
     <string name="delete_dialog_cancel">Cancelar</string>
     <string name="delete_dialog_procesing">Eliminando...</string>
 
+    <string name="open">Abrir</string>
+    <string name="close">Cerrar</string>
 
 </resources>

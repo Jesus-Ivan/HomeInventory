@@ -9,5 +9,6 @@ data class ProductosItem(
     @SerializedName("observaciones") val observaciones: String ="",
     @SerializedName("precio_compra") val precio_compra: String ="",
     @SerializedName("precio_venta") val precio_venta: String ="",
-    @SerializedName("producto") val producto: String =""
+    @SerializedName("producto") val producto: String ="",
+    @SerializedName("image") val image:String=""
 )
