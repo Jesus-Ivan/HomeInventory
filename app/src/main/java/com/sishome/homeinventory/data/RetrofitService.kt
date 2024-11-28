@@ -1,7 +1,9 @@
 package com.sishome.homeinventory.data
 
+import com.sishome.homeinventory.data.model.ImageResponse
 import com.sishome.homeinventory.data.model.ProductosItem
 import com.sishome.homeinventory.data.model.ProductosResponse
+import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -31,8 +33,14 @@ interface RetrofitService {
 
     @POST("api/productos")
     suspend fun crearProducto(
-        @Body producto: ProductosItem
+        @Body producto: ProductosItem,
     ): Response<ProductosItem>
+
+    @Multipart
+    @POST("/image")
+    suspend fun crearImagen(
+        @Part imageProduct : MultipartBody.Part
+    ):Response<ImageResponse>
 
     @PUT("api/productos/{id}")
     suspend fun actualizarProducto(
@@ -50,7 +58,7 @@ interface RetrofitService {
 object RetrofitServiceFactory {
     fun makeRetrofitService(): RetrofitService {
         return Retrofit.Builder()
-            .baseUrl("http://192.168.1.75:3000/")
+            .baseUrl("http://192.168.1.89:3000/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(RetrofitService::class.java)

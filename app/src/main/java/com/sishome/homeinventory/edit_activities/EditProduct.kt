@@ -127,23 +127,32 @@ class EditProduct : AppCompatActivity() {
          * Lanzamos corrutina de busqueda en hilo secundario
          */
         CoroutineScope(Dispatchers.IO).launch {
-            //hacemos la llamada para obtener la informacion
-            val response: Response<ProductosItem> = retrofitService.obtenerProducto(idProducto)
-            if (response.isSuccessful) {
-                //extraemos el cuerpo de la respuesta devuelta por la llamada a retrofit
-                val product: ProductosItem? = response.body()
-                if (product != null) {
-                    //Actualizamos la UI, en el hilo main
-                    runOnUiThread {
-                        //Ocultar la progress bar
-                        pbLoading.isVisible = false
-                        //Mostrar la UI
-                        llEdit.isVisible = true
-                        btnSave.isVisible = true
-                        //Settear los valores de los inputs
-                        setValuesProduct(product)
-                    }
+            try {
+                //hacemos la llamada para obtener la informacion
+                val response: Response<ProductosItem> = retrofitService.obtenerProducto(idProducto)
+                if (response.isSuccessful) {
+                    //extraemos el cuerpo de la respuesta devuelta por la llamada a retrofit
+                    val product: ProductosItem? = response.body()
+                    if (product != null) {
+                        //Actualizamos la UI, en el hilo main
+                        runOnUiThread {
+                            //Ocultar la progress bar
+                            pbLoading.isVisible = false
+                            //Mostrar la UI
+                            llEdit.isVisible = true
+                            btnSave.isVisible = true
+                            //Settear los valores de los inputs
+                            setValuesProduct(product)
+                        }
 
+                    }
+                }else{
+                    throw Exception(response.message())
+                }
+            }catch (e:Exception){
+                runOnUiThread {
+                    pbLoading.isVisible=false
+                    Toast.makeText(this@EditProduct,e.message,Toast.LENGTH_LONG).show()
                 }
             }
         }
