@@ -1,28 +1,41 @@
 package com.sishome.homeinventory.edit_activities
 
 import android.app.Dialog
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
 import com.sishome.homeinventory.R
 import com.sishome.homeinventory.data.RetrofitService
 import com.sishome.homeinventory.data.RetrofitServiceFactory
+import com.sishome.homeinventory.data.model.ImageResponse
 import com.sishome.homeinventory.data.model.ProductosItem
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
+import java.io.File
+import java.io.FileOutputStream
+
 
 class NewProduct : AppCompatActivity() {
     /**
@@ -35,16 +48,32 @@ class NewProduct : AppCompatActivity() {
     private lateinit var etCodigoBarra: EditText
     private lateinit var etOtros: EditText
     private lateinit var btnSave: Button
-    private lateinit var btnCamera : ImageButton
+    private lateinit var btnCamera: ImageButton
+    private lateinit var ivProducto: ImageView
+    private lateinit var llNew :LinearLayout
+    private lateinit var llLoading :LinearLayout
+    private lateinit var btnAddImageGalery: ImageButton
+    private lateinit var btnCleanImage: ImageButton
 
     //Servicio de retrofit
     private lateinit var retrofitService: RetrofitService
+
     //Camara scaner
-    private var barcodeLauncher : ActivityResultLauncher<ScanOptions>? = null
+    private var barcodeLauncher: ActivityResultLauncher<ScanOptions>? = null
+
+    //Uri de la imagen seleccionada
+    private var uriImageProduct : Uri? = null
+
+    val contract = registerForActivityResult(ActivityResultContracts.GetContent()){
+        if (it != null){
+            uriImageProduct = it
+            ivProducto.setImageURI(it)
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_new_product)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -63,13 +92,21 @@ class NewProduct : AppCompatActivity() {
         btnCamera.setOnClickListener {
             barcodeLauncher!!.launch(ScanOptions().setOrientationLocked(false))
         }
+
+        //Listener para agregar la imagen de la galeria
+        btnAddImageGalery.setOnClickListener {
+            contract.launch("image/*")
+        }
+        //Listener para eliminar la imagen
+        btnCleanImage.setOnClickListener {
+            uriImageProduct = null
+            ivProducto.setImageURI(uriImageProduct)
+        }
     }
 
     private fun saveProduct() {
-        //Creamos un nuevo dialog
-        val dialog = createDialog()
-        //mostramos el dialogo
-        dialog.show()
+        //Habilitamos el estado de carga
+        enableLoadingState(true)
 
         CoroutineScope(Dispatchers.IO).launch {
             //Crear el objeto con las propiedades
@@ -80,12 +117,20 @@ class NewProduct : AppCompatActivity() {
                 etOtros.text.toString(),
                 etPrecioCompra.text.toString(),
                 etPrecioVenta.text.toString(),
-                etNombre.text.toString()
+                etNombre.text.toString(),
             )
+            val partImage = createPartImage()
+
             try {
+                //Crear la imagen en el servidor
+                if (partImage != null){
+                    val imageResponse: Response<ImageResponse> = retrofitService.crearImagen(partImage)
+                    if (imageResponse.isSuccessful)
+                        product.image = imageResponse.body()?.image ?: ""
+                }
+
                 //llamar a retrofit
                 val response: Response<ProductosItem> = retrofitService.crearProducto(product)
-
                 if (response.isSuccessful) {
                     //Ejecutar acciones en la UI, en el hilo principal
                     runOnUiThread {
@@ -97,19 +142,43 @@ class NewProduct : AppCompatActivity() {
                         reset()     //Limpiar imputs
                     }
                 } else {
-                    throw Exception("Algo ha ido mal :C")
+                    throw Exception(response.message())
                 }
             } catch (e: Exception) {
                 runOnUiThread {
                     Toast.makeText(this@NewProduct, e.message, Toast.LENGTH_SHORT).show()
                 }
-            }
-            finally {
-                //Ocultar el dialogo de carga
-                runOnUiThread { dialog.hide() }
+            } finally {
+                //Deshabilitar estado carga
+                runOnUiThread { enableLoadingState(false) }
             }
 
         }
+    }
+
+    private fun createPartImage(): MultipartBody.Part? {
+        if(uriImageProduct != null){
+            val filesDir = applicationContext.filesDir
+            val file = File(filesDir,"image.png")
+            val inputStream = contentResolver.openInputStream(uriImageProduct!!)
+            val outputStream = FileOutputStream(file)
+            inputStream!!.copyTo(outputStream)
+
+            val requestBody = RequestBody.create(MediaType.parse("image/*"),file)
+            val part = MultipartBody.Part.createFormData("imageProduct",file.name,requestBody)
+            return part
+        }else{
+            return null
+        }
+    }
+
+    private fun enableLoadingState(enable:Boolean){
+        //Ocultar el linearLayout
+        llNew.isVisible= !enable
+        //Ocultar el boton
+        btnSave.isVisible = !enable
+        llLoading.isVisible = enable
+
     }
 
     private fun reset() {
@@ -143,6 +212,11 @@ class NewProduct : AppCompatActivity() {
         etCodigoBarra = findViewById(R.id.etCodigoBarra_new)
         etOtros = findViewById(R.id.etOtros_new)
         btnSave = findViewById(R.id.btnSave_new)
+        ivProducto = findViewById(R.id.ivProducto)
+        llNew = findViewById(R.id.llNew)
+        llLoading = findViewById(R.id.loading_state)
+        btnAddImageGalery = findViewById(R.id.btnAddImageFromGalery)
+        btnCleanImage =  findViewById(R.id.btnCleanImage)
 
         btnCamera = findViewById(R.id.btnCamera)
         /**
@@ -158,5 +232,7 @@ class NewProduct : AppCompatActivity() {
                 etCodigoBarra.setText(result.contents)
             }
         }
+
+
     }
 }

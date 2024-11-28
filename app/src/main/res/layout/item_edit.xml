@@ -75,6 +75,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/precio_venta_field"
+                android:textSize="18sp"
+                android:textColor="@color/price_color"
                 android:textStyle="bold"
                 />
             <TextView
@@ -83,6 +85,8 @@
                 android:layout_height="match_parent"
                 tools:text="12354ADFD"
                 android:layout_marginStart="8dp"
+                android:textSize="18sp"
+                android:textColor="@color/price_color"
                 />
         </LinearLayout>
         <LinearLayout

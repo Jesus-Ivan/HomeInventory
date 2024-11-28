@@ -16,8 +16,11 @@
         android:orientation="vertical">
 
         <ImageView
+            android:id="@+id/ivProducto"
             android:layout_width="match_parent"
-            android:layout_height="200dp" />
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            />
         <TextView
             android:id="@+id/tvNombre"
             android:layout_width="match_parent"

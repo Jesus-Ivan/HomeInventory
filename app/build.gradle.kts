@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    //Retrofir
     implementation ("com.squareup.retrofit2:retrofit:2.11.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.11.0")
 
@@ -57,5 +58,8 @@ dependencies {
 
     //Camara Scan (QR, BARCODE)
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    //Picasso (imagenes en imageview)
+    implementation ("com.squareup.picasso:picasso:2.8")
 
 }

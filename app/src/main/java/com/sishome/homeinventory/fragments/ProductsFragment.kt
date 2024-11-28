@@ -10,6 +10,7 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.widget.SearchView
+import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -113,8 +114,8 @@ class ProductsFragment : Fragment() {
     }
 
     private fun buscarProducto(query: String) {
-        //Habilitar la progress bar
-        pbProductos.isVisible =true
+        //Activar las animaciones de carga
+        enableLoadingState(true)
         /**
          * Lanzar una corrutina en un hilo secundario.
          * El alcance del hilo IO, es usado para procesos pesados o llamadas a BD
@@ -128,8 +129,8 @@ class ProductsFragment : Fragment() {
                     if (body != null) {
                         //Actualizamos la UI, en el hilo main
                         withContext(Dispatchers.Main) {
-                            //Ocultar la progress bar
-                            pbProductos.isVisible =false
+                            //Desactivar animaciones de carga
+                            enableLoadingState(false)
 
                             // Actualizar la lista de usuarios
                             products.clear()
@@ -137,6 +138,8 @@ class ProductsFragment : Fragment() {
 
                             // Notificar al adaptador
                             productsAdapter.notifyDataSetChanged()
+
+                            rvProducts.clearFocus()
                         }
                     }
                 }
@@ -194,6 +197,13 @@ class ProductsFragment : Fragment() {
                 ).show()
             }
         }
+    }
+
+    private fun enableLoadingState(enabled:Boolean){
+        //Habilitar la progress bar
+        pbProductos.isVisible = enabled
+        //Deshabilitar el recyclerview
+        rvProducts.isVisible = !enabled;
     }
 
     companion object {

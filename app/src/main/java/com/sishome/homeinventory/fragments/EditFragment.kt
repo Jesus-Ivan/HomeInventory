@@ -185,8 +185,7 @@ class EditFragment : Fragment() {
     }
 
     private fun buscarProductos(newText: String) {
-        //Habilitar la progress bar
-        pbProducts.isVisible = true
+        enableLoadingState(true)
         /**
          * Lanzar una corrutina en un hilo secundario.
          * El alcance del hilo IO, es usado para procesos pesados o llamadas a BD
@@ -203,8 +202,7 @@ class EditFragment : Fragment() {
                     if (body != null) {
                         //Actualizamos la UI, en el hilo main
                         withContext(Dispatchers.Main) {
-                            //Ocultar la progress bar
-                            pbProducts.isVisible = false
+                            enableLoadingState(false)
 
                             // Actualizar la lista de usuarios
                             products.clear()
@@ -282,6 +280,15 @@ class EditFragment : Fragment() {
 
         //Habilitamos el menu de carga
         llDeleteProcesing.isVisible = !enabled
+    }
+
+    /**
+     * Funcion encargada de activar la animacion de carga principal
+     */
+    private fun enableLoadingState(enabled:Boolean){
+        rvProductsGrid.isVisible= !enabled  //Inhabilitar el recyclerview
+        //Habilitar la progress bar
+        pbProducts.isVisible = enabled
     }
 
     companion object {
