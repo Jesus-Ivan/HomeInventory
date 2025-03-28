@@ -9,11 +9,13 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="card_bg">#F1F1F1</color>
-    <color name="price_color">#089F28</color>
+    <color name="price_color">#03821E</color>
     <color name="red">#CA1B4D</color>
 
     <color name="btn_icon_camera_background">#00FFFFFF</color>
     <color name="btn_icon_camera_foreground">#929292</color>
+
+    <color name="btn_image">#FF6200EE</color>
 
 
 

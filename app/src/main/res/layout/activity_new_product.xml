@@ -106,56 +106,10 @@
             android:hint="@string/observaciones_field"
             android:singleLine="true" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <include
+            layout="@layout/image_select"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-            >
-            <ImageView
-                android:id="@+id/ivProducto"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                android:background="@color/card_bg"
-                android:layout_width="match_parent"
-                android:layout_height="220dp"
-                android:scaleType="centerCrop"
-                android:layout_margin="16dp"
-                />
-            <ImageButton
-                android:id="@+id/btnCleanImage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:src="@drawable/ic_cancel"
-                android:backgroundTint="@color/btn_icon_camera_background"
-                app:tint="@color/btn_icon_camera_foreground"
-
-                />
-            <ImageButton
-                android:id="@+id/btnAddImageFromGalery"
-                android:src="@drawable/ic_add_photo"
-                app:layout_constraintStart_toStartOf="@+id/ivProducto"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/btn_icon_camera_background"
-                app:tint="@color/btn_icon_camera_foreground"
-                />
-            <ImageButton
-                android:id="@+id/btnAddImageFromCamera"
-                android:src="@drawable/ic_add_photo_camera"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/btnAddImageFromGalery"
-                android:backgroundTint="@color/btn_icon_camera_background"
-                app:tint="@color/btn_icon_camera_foreground"
-                android:layout_marginStart="8dp"
-                />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
+            android:layout_height="wrap_content" />
 
 
     </LinearLayout>

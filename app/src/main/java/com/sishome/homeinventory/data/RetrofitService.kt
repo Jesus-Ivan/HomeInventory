@@ -53,12 +53,17 @@ interface RetrofitService {
         @Path("id") id: Int
     ): Response<Any>
 
+    @DELETE("/image/{imageName}")
+    suspend fun eliminarImagen(
+        @Path("imageName") imageName:String
+    ):Response<Any>
+
 }
 
 object RetrofitServiceFactory {
     fun makeRetrofitService(): RetrofitService {
         return Retrofit.Builder()
-            .baseUrl("http://192.168.1.89:3000/")
+            .baseUrl("http://192.168.1.67:3000/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(RetrofitService::class.java)

@@ -46,19 +46,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/moneda"
-                    android:textSize="26sp"
                     android:layout_marginHorizontal="4dp"
-                    android:textStyle="bold"
-                    android:textColor="@color/price_color" />
+                    style="@style/product_price_tab"/>
 
                 <TextView
                     android:id="@+id/tvPrecio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     tools:text="99.99"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/price_color" />
+                    style="@style/product_price_tab"/>
             </LinearLayout>
 
             <TextView
