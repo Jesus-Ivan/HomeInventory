@@ -16,10 +16,24 @@
 
 
     <style name="product_name">
-        <item name="android:textSize">28sp</item>
+        <item name="android:textSize">30sp</item>
         <item name="android:textStyle">bold</item>
         <item name="textAllCaps">true</item>
         <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="product_price">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="textAllCaps">true</item>
+        <item name="android:textColor">@color/price_color</item>
+    </style>
+
+    <style name="product_price_tab">
+        <item name="android:textSize">50sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="textAllCaps">true</item>
+        <item name="android:textColor">@color/price_color</item>
     </style>
 
     <style name="tittle_activity">

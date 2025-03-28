@@ -1,17 +1,24 @@
 package com.sishome.homeinventory.edit_activities
 
+import android.Manifest
 import android.app.Dialog
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -22,12 +29,20 @@ import com.sishome.homeinventory.MainActivity.Companion.ID_PRODUCT_KEY
 import com.sishome.homeinventory.R
 import com.sishome.homeinventory.data.RetrofitService
 import com.sishome.homeinventory.data.RetrofitServiceFactory
+import com.sishome.homeinventory.data.model.ImageResponse
 import com.sishome.homeinventory.data.model.ProductosItem
+import com.squareup.picasso.Picasso
+import id.zelory.compressor.Compressor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
+import java.io.File
+import java.io.FileOutputStream
 
 class EditProduct : AppCompatActivity() {
     //Id del producto
@@ -44,12 +59,47 @@ class EditProduct : AppCompatActivity() {
     private lateinit var pbLoading: ProgressBar
     private lateinit var llEdit: LinearLayout
     private lateinit var btnSave: Button
-    private lateinit var btnCamera : ImageButton
+    private lateinit var btnCamera: ImageButton
+    private lateinit var ivProduct: ImageView            //Imageview del producto
+    private lateinit var btnAddImageGalery: ImageButton //Boton para agregar imagen desde la galeria
+    private lateinit var btnCleanImage: ImageButton     //Boton para limpiar la imagen
+    private lateinit var btnAddImageCamera: ImageButton //Botono para agregar imagen desde la camara
+
 
     //Servicio de retrofit
     private lateinit var retrofitService: RetrofitService
+
     //Camara scaner
-    private var barcodeLauncher : ActivityResultLauncher<ScanOptions>? = null
+    private var barcodeLauncher: ActivityResultLauncher<ScanOptions>? = null
+
+    //Uri's auxiliares para la actualizacion de la imagen
+    private var urlOriginalImage: String = ""
+    private var uriNewImage: Uri? = null
+
+    //Contract para escoger una imagen de galeria
+    val imageGalery = registerForActivityResult(ActivityResultContracts.GetContent()) {
+        if (it != null) {
+            uriNewImage = it
+            Picasso.get().load(it).into(ivProduct)
+        }
+    }
+
+    //Contract para tomar una foto
+    private val takePicture =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { result ->
+            if (result) {
+                Picasso.get().load(uriNewImage).into(ivProduct)
+            }
+        }
+
+    val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                takePicture.launch(uriNewImage!!)
+            } else {
+                Toast.makeText(this, ":( necesito la camara porfa", Toast.LENGTH_SHORT).show()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,20 +137,46 @@ class EditProduct : AppCompatActivity() {
                     etOtros.text.toString(),
                     etPrecioCompra.text.toString(),
                     etPrecioVenta.text.toString(),
-                    etNombre.text.toString()
+                    etNombre.text.toString(),
+                    urlOriginalImage
                 )
-                //Hacer llamada a la api
-                val response: Response<ProductosItem> =
-                    retrofitService.actualizarProducto(idProducto, producto)
-                //Mostramos en el hilo principal, el toast
-                runOnUiThread {
-                    if (response.isSuccessful) {
-                        Toast.makeText(this@EditProduct, "Exito :D!", Toast.LENGTH_SHORT).show()
-                        onBackPressed()
-                    } else {
-                        Toast.makeText(this@EditProduct, "Error :(", Toast.LENGTH_SHORT).show()
+                //Crear la imagen nueva de forma local
+                val partImage = createPartImage()
+
+                try {
+                    //Crear la imagen en el servidor
+                    if (partImage != null) {
+                        //Hacer peticion para crear la imagen
+                        val imageResponseNew: Response<ImageResponse> =
+                            retrofitService.crearImagen(partImage)
+                        //Si hay respuesta exitosa
+                        if (imageResponseNew.isSuccessful)
+                            producto.image = imageResponseNew.body()?.image ?: ""
+                        else
+                            throw Exception(imageResponseNew.message())
                     }
-                    dialog.hide()
+
+
+                    //Hacer llamada a la api
+                    val response: Response<ProductosItem> =
+                        retrofitService.actualizarProducto(idProducto, producto)
+
+
+                    //Mostramos en el hilo principal, el toast
+                    runOnUiThread {
+                        if (response.isSuccessful) {
+                            Toast.makeText(this@EditProduct, "Exito :D!", Toast.LENGTH_SHORT).show()
+                            onBackPressed()
+                        } else {
+                            Toast.makeText(this@EditProduct, "Error :(", Toast.LENGTH_SHORT).show()
+                        }
+
+                    }
+
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        Toast.makeText(this@EditProduct, e.message, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -109,6 +185,43 @@ class EditProduct : AppCompatActivity() {
         btnCamera.setOnClickListener {
             barcodeLauncher!!.launch(ScanOptions().setOrientationLocked(false))
         }
+
+        //Listener para eliminar la imagen del imageview
+        btnCleanImage.setOnClickListener {
+            urlOriginalImage = ""     //Limpiar la url original
+            uriNewImage = null          //limpiar la uri nueva
+            //Limpiar el imageview y establecerle la URI de la nueva imagen
+            Picasso.get().load(uriNewImage).into(ivProduct)
+        }
+
+        //Listener del boton de galeria
+        btnAddImageGalery.setOnClickListener {
+            imageGalery.launch("image/*")
+        }
+
+        //Listener del boton de camara
+        btnAddImageCamera.setOnClickListener {
+            //Creamos el Uri de destino
+            uriNewImage = createImageUri()
+            //Verificamos si se cuenta con los permisos
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.CAMERA
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                //lanzar actividad de la camara
+                takePicture.launch(uriNewImage!!)
+            } else {
+                //Solicitar permisos
+                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+
+        }
+    }
+
+    private fun createImageUri(): Uri {
+        val image = File(filesDir, "camera_photos.png")
+        return FileProvider.getUriForFile(this, "com.sishome.homeinventory.FileProvider", image)
     }
 
     private fun createDialog(): Dialog {
@@ -121,6 +234,28 @@ class EditProduct : AppCompatActivity() {
          */
         return dialog
     }
+
+    private suspend fun createPartImage(): MultipartBody.Part? {
+        if (uriNewImage != null) {
+            val filesDir = applicationContext.filesDir
+            val file = File(filesDir, "image.png")
+            val inputStream = contentResolver.openInputStream(uriNewImage!!)
+            val outputStream = FileOutputStream(file)
+            inputStream!!.copyTo(outputStream)
+            val compressedImageFile = Compressor.compress(this, file)
+
+            val requestBody = RequestBody.create(MediaType.parse("image/*"), compressedImageFile)
+            val part = MultipartBody.Part.createFormData(
+                "imageProduct",
+                compressedImageFile.name,
+                requestBody
+            )
+            return part
+        } else {
+            return null
+        }
+    }
+
 
     private fun searchProduct() {
         /**
@@ -146,13 +281,13 @@ class EditProduct : AppCompatActivity() {
                         }
 
                     }
-                }else{
+                } else {
                     throw Exception(response.message())
                 }
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 runOnUiThread {
-                    pbLoading.isVisible=false
-                    Toast.makeText(this@EditProduct,e.message,Toast.LENGTH_LONG).show()
+                    pbLoading.isVisible = false
+                    Toast.makeText(this@EditProduct, e.message, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -165,6 +300,14 @@ class EditProduct : AppCompatActivity() {
         etPrecioVenta.setText(product.precio_venta)
         etCodigoBarra.setText(product.codigo_barra)
         etOtros.setText(product.observaciones)
+        if (product.image.isNotEmpty() && product.image != null) {
+            Picasso.get()
+                .load(product.image)
+                .error(R.drawable.img_error)
+                .into(ivProduct)
+            urlOriginalImage = product.image
+        }
+
     }
 
     private fun initComponents() {
@@ -179,6 +322,11 @@ class EditProduct : AppCompatActivity() {
         llEdit = findViewById(R.id.llEdit)
         btnSave = findViewById(R.id.btnSave)
         btnCamera = findViewById(R.id.btnCamera)
+
+        ivProduct = findViewById(R.id.ivProducto)
+        btnAddImageGalery = findViewById(R.id.btnAddImageFromGalery)
+        btnCleanImage = findViewById(R.id.btnCleanImage)
+        btnAddImageCamera = findViewById(R.id.btnAddImageFromCamera)
         /**
          * Inicializar el scaner
          */

@@ -37,6 +37,8 @@ android {
 
 dependencies {
     val lifecycle_version = "2.8.5"
+    val activity_version = "1.9.2"
+    val fragment_version = "1.8.3"
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -61,5 +63,12 @@ dependencies {
 
     //Picasso (imagenes en imageview)
     implementation ("com.squareup.picasso:picasso:2.8")
+
+    //Image compressor
+    implementation ("id.zelory:compressor:3.0.1")
+
+    //Permite que el sistema administre el código de solicitud de permisos
+    implementation("androidx.activity:activity-ktx:$activity_version")
+    implementation("androidx.fragment:fragment-ktx:$fragment_version")
 
 }
