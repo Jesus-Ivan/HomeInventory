@@ -300,14 +300,12 @@ class EditProduct : AppCompatActivity() {
         etPrecioVenta.setText(product.precio_venta)
         etCodigoBarra.setText(product.codigo_barra)
         etOtros.setText(product.observaciones)
-        if (product.image.isNotEmpty() && product.image != null) {
-            Picasso.get()
-                .load(product.image)
-                .error(R.drawable.img_error)
-                .into(ivProduct)
-            urlOriginalImage = product.image
-        }
 
+        Picasso.get()
+            .load(product.image)
+            .error(R.drawable.img_error)
+            .into(ivProduct)
+        urlOriginalImage = product.image ?: ""
     }
 
     private fun initComponents() {
