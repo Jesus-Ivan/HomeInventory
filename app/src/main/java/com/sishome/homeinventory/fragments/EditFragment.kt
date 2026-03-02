@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +31,7 @@ import com.sishome.homeinventory.data.RetrofitServiceFactory
 import com.sishome.homeinventory.data.model.ProductosItem
 import com.sishome.homeinventory.data.model.ProductosResponse
 import com.sishome.homeinventory.edit_activities.NewProduct
+import com.sishome.homeinventory.view_models.FragmentProducts
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -68,6 +70,8 @@ class EditFragment : Fragment() {
 
     //Camara scaner
     private var barcodeLauncher: ActivityResultLauncher<ScanOptions>? = null
+
+    private val viewModel: FragmentProducts by viewModels()
 
     //lista de productos
     private var products: MutableList<ProductosItem> = mutableListOf()
@@ -154,6 +158,29 @@ class EditFragment : Fragment() {
     }
 
     private fun initListeners(view: View) {
+        viewModel.products.observe(viewLifecycleOwner) { list_product ->
+            //Ocultar la progressbar
+            pbProducts.isVisible = false
+            enableLoadingState(false)
+            rvProductsGrid.clearFocus()
+            if(list_product != null){
+                // Actualizar la lista de usuarios
+                products.clear()
+                products.addAll(list_product)
+
+                // Notificar al adaptador
+                productsAdapter.notifyDataSetChanged()
+
+
+                //productsAdapter.submitList(list_product)
+            }
+            if (list_product == null) {
+                //Mostrar toast de error
+                Toast.makeText(this@EditFragment.context, "Ocurrio un error", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+
         //Boton de añadir nuevo producto
         fabAddProducto.setOnClickListener {
             val intent = Intent(view.context, NewProduct::class.java)
@@ -186,42 +213,7 @@ class EditFragment : Fragment() {
 
     private fun buscarProductos(newText: String) {
         enableLoadingState(true)
-        /**
-         * Lanzar una corrutina en un hilo secundario.
-         * El alcance del hilo IO, es usado para procesos pesados o llamadas a BD
-         */
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                //Llamada a la API
-                val response: Response<ProductosResponse> =
-                    retrofitService.obtenerProductos(newText)
-
-                if (response.isSuccessful) {
-                    //Estraer el cuerpo de la respuesta
-                    val body: ProductosResponse? = response.body()
-                    if (body != null) {
-                        //Actualizamos la UI, en el hilo main
-                        withContext(Dispatchers.Main) {
-                            enableLoadingState(false)
-
-                            // Actualizar la lista de usuarios
-                            products.clear()
-                            products.addAll(body.products)
-
-                            // Notificar al adaptador
-                            productsAdapter.notifyDataSetChanged()
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    //Ocultar la progress bar
-                    pbProducts.isVisible = false
-                    Toast.makeText(this@EditFragment.context, e.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-
-        }
+        viewModel.buscarProductos(newText);
     }
 
     private fun deleteProduct(position: Int) {
