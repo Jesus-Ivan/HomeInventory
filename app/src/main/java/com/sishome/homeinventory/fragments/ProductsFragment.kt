@@ -13,6 +13,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.journeyapps.barcodescanner.ScanContract
@@ -24,6 +25,7 @@ import com.sishome.homeinventory.data.RetrofitService
 import com.sishome.homeinventory.data.RetrofitServiceFactory
 import com.sishome.homeinventory.data.model.ProductosItem
 import com.sishome.homeinventory.data.model.ProductosResponse
+import com.sishome.homeinventory.view_models.FragmentProducts
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,15 +52,13 @@ class ProductsFragment : Fragment() {
     private lateinit var rvProducts: RecyclerView
     private lateinit var productsAdapter: ProductsAdapter
     private lateinit var svInputSearch: SearchView
-    private lateinit var pbProductos :ProgressBar
-    private lateinit var btnCamera :ImageButton
+    private lateinit var pbProductos: ProgressBar
+    private lateinit var btnCamera: ImageButton
 
-    private lateinit var retrofitService: RetrofitService
-
-    private val products: MutableList<ProductosItem> = mutableListOf()
+    private val viewModel: FragmentProducts by viewModels()
 
     //Camara scaner
-    private var barcodeLauncher : ActivityResultLauncher<ScanOptions>? = null
+    private var barcodeLauncher: ActivityResultLauncher<ScanOptions>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,8 +72,6 @@ class ProductsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        //Creamos el servicio de retrofit, antes devolver la vista para el fragment
-        retrofitService = RetrofitServiceFactory.makeRetrofitService()
 
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_products, container, false)
@@ -98,7 +96,7 @@ class ProductsFragment : Fragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 buscarProducto(query.orEmpty())
                 //Limpiar el campo de busqueda
-                svInputSearch.setQuery("",false)
+                svInputSearch.setQuery("", false)
                 return false
             }
 
@@ -111,48 +109,26 @@ class ProductsFragment : Fragment() {
             barcodeLauncher!!.launch(ScanOptions().setOrientationLocked(false))
         }
 
+        viewModel.products.observe(viewLifecycleOwner) { list_product ->
+            //Ocultar la progressbar
+            pbProductos.isVisible = false
+            enableLoadingState(false)
+            rvProducts.clearFocus()
+            if(list_product != null){
+                productsAdapter.submitList(list_product)
+            }
+            if (list_product == null) {
+                //Mostrar toast de error
+                Toast.makeText(this@ProductsFragment.context, "Ocurrio un error", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
     }
 
     private fun buscarProducto(query: String) {
         //Activar las animaciones de carga
         enableLoadingState(true)
-        /**
-         * Lanzar una corrutina en un hilo secundario.
-         * El alcance del hilo IO, es usado para procesos pesados o llamadas a BD
-         */
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response: Response<ProductosResponse> = retrofitService.obtenerProductos(query)
-
-                if (response.isSuccessful) {
-                    val body: ProductosResponse? = response.body()
-                    if (body != null) {
-                        //Actualizamos la UI, en el hilo main
-                        withContext(Dispatchers.Main) {
-                            //Desactivar animaciones de carga
-                            enableLoadingState(false)
-
-                            // Actualizar la lista de usuarios
-                            products.clear()
-                            products.addAll(body.products)
-
-                            // Notificar al adaptador
-                            productsAdapter.notifyDataSetChanged()
-
-                            rvProducts.clearFocus()
-                        }
-                    }
-                }
-            }catch (e: Exception){
-                // Manejar la excepción, en el hilo principal
-                withContext(Dispatchers.Main){
-                    //Mostrar toast de error
-                    Toast.makeText(this@ProductsFragment.context,e.message,Toast.LENGTH_SHORT).show()
-                    //Ocultar la progressbar
-                    pbProductos.isVisible = false
-                }
-            }
-        }
+        viewModel.buscarProductos(query);
     }
 
     private fun initComponents(view: View) {
@@ -160,7 +136,7 @@ class ProductsFragment : Fragment() {
          * Recycler view
          */
         //Asignar los valores al adaptador
-        productsAdapter = ProductsAdapter(products)
+        productsAdapter = ProductsAdapter()
         //  Iniciar el recyclerview
         rvProducts = view.findViewById(R.id.rvProducts)
         //definir el manejador del layouts del recyclerview
@@ -199,7 +175,7 @@ class ProductsFragment : Fragment() {
         }
     }
 
-    private fun enableLoadingState(enabled:Boolean){
+    private fun enableLoadingState(enabled: Boolean) {
         //Habilitar la progress bar
         pbProductos.isVisible = enabled
         //Deshabilitar el recyclerview
@@ -225,5 +201,4 @@ class ProductsFragment : Fragment() {
                 }
             }
     }
-
 }
